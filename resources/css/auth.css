@@ -1,0 +1,106 @@
+/* @tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    background-color: #050816;
+    overflow: hidden;
+}
+
+.grid-background {
+    background-image:
+        linear-gradient(to right, rgba(0, 219, 231, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 219, 231, 0.05) 1px, transparent 1px);
+    background-size: 50px 50px;
+    mask-image: radial-gradient(circle at center, black, transparent 80%);
+}
+
+.particle {
+    position: absolute;
+    background: #00f2ff;
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0.3;
+    filter: blur(1px);
+}
+
+.glass-card {
+    background: rgba(11, 17, 32, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(0, 242, 255, 0.2);
+    box-shadow: 0 0 40px rgba(0, 219, 231, 0.1), inset 0 0 20px rgba(0, 219, 231, 0.05);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+    border-color: rgba(0, 242, 255, 0.5);
+    box-shadow: 0 0 60px rgba(0, 219, 231, 0.2), inset 0 0 30px rgba(0, 219, 231, 0.1);
+}
+.neon-shadow {
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.1);
+        }
+
+
+.neon-button {
+    position: relative;
+    background: #00f2ff;
+    box-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
+    transition: all 0.3s ease;
+}
+
+.neon-button:hover {
+    box-shadow: 0 0 30px rgba(0, 242, 255, 0.7);
+    transform: translateY(-2px);
+}
+
+.neon-button:active {
+    transform: scale(0.95);
+}
+.neon-text {
+            text-shadow: 0 0 5px rgba(0, 242, 255, 0.3);
+        }
+
+.input-glow:focus {
+    box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+    border-bottom-color: #00f2ff !important;
+}
+
+@keyframes scanline {
+    0% {
+        transform: translateY(-100%);
+    }
+
+    100% {
+        transform: translateY(100%);
+    }
+}
+
+.scanline {
+    background: linear-gradient(to bottom, transparent, rgba(0, 242, 255, 0.05), transparent);
+    height: 100px;
+    width: 100%;
+    position: absolute;
+    animation: scanline 8s linear infinite;
+}
+
+.material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+.success-toast {
+    opacity: 0;
+    bottom: -100px;
+    scale: 0.95;
+
+    transition:
+        opacity 0.4s ease,
+        bottom 0.4s ease,
+        scale 0.4s ease;
+}
+
+.success-toast.active {
+    opacity: 1;
+    bottom: 40px;
+    scale: 1;
+} */
