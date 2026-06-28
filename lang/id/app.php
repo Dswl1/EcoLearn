@@ -480,4 +480,8 @@ return [
     'ai_feature_support_desc' => 'Jawaban instan untuk pertanyaan kompleks tentang keberlanjutan dan kebijakan global.',
     'connect_neural' => 'Hubungkan ke Neural Core',
     'explorer' => 'Eksplorator',
+    'edit_profile' => 'Edit Profil',
+    'my_dashboard' => 'Dasboard Saya',
+    'member_since' => 'Anggota sejak',
+    'view_profile' => 'Lihat Profil',
 ];

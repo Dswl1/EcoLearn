@@ -480,4 +480,8 @@ return [
     'ai_feature_support_desc' => 'Instant answers to complex questions about sustainability and global policy.',
     'connect_neural' => 'Connect to Neural Core',
     'explorer' => 'Explorer',
+    'edit_profile' => 'Edit Profile',
+    'my_dashboard' => 'My Dashboard',
+    'member_since' => 'Member since',
+    'view_profile' => 'View Profile',
 ];

@@ -140,7 +140,7 @@
             </div>
         </section>
 
-        <section class="py-section-gap px-container-padding-mobile" x-data="sdgSlider()">
+        <section class="py-section-gap px-container-padding-desktop" x-data="sdgSlider()">
             <div class="mb-8 md:mb-12">
                 <h2 class="font-headline-md text-headline-md text-on-surface mb-2">{{ __('app.the_17_goals') }}</h2>
                 <p class="font-body-md text-body-md text-on-surface-variant">{{ __('app.goals_subtitle') }}</p>

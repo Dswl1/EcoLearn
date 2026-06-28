@@ -5,15 +5,15 @@
 
 @section('auth')
     <!-- Branding Header -->
-    <div class="mb-4 text-center space-y-2">
-        <div class="inline-flex items-center gap-2 mb-4">
-            <span class="material-symbols-outlined text-primary-container text-4xl"
-                style="font-variation-settings: 'FILL' 1;">public</span>
-            <h1 class="font-display-lg text-primary-container tracking-tighter uppercase text-xl font-bold">{{ __('app.app_name') }}</h1>
-        </div>
-    </div>
     <!-- Forgot Password Card -->
     <div class="glass-card rounded-xl p-8 md:p-12 relative overflow-hidden">
+        <div class="mb-4 text-center space-y-2">
+            <div class="inline-flex items-center gap-2 mb-4">
+                <span class="material-symbols-outlined text-primary-container text-4xl"
+                    style="font-variation-settings: 'FILL' 1;">public</span>
+                <h1 class="font-display-lg text-primary-container tracking-tighter uppercase text-xl font-bold">{{ __('app.app_name') }}</h1>
+            </div>
+        </div>
         <div class="relative z-10">
             <h2 class="font-headline-md text-white text-3xl font-bold mb-4 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
                 Lupa Password?

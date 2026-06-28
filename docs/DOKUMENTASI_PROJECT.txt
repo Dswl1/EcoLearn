@@ -1,0 +1,861 @@
+
+================================================================================
+              DOKUMENTASI PROJEK EcoLearn
+  Platform Belajar SDGs (Sustainable Development Goals)
+================================================================================
+
+Daftar Isi:
+  1.  Tentang EcoLearn
+  2.  Kebutuhan Sistem
+  3.  Instalasi
+  4.  Struktur Direktori
+  5.  Database (Migrasi)
+  6.  Fitur & Arsitektur MVC
+  7.  Daftar Route Lengkap
+
+
+================================================================================
+1. TENTANG ECOLEARN
+================================================================================
+
+EcoLearn adalah platform pembelajaran online berbasis web yang berfokus pada
+17 Tujuan Pembangunan Berkelanjutan (SDGs) PBB. Platform ini memungkinkan:
+
+  - Pengguna (User):  Mencari materi, membaca konten edukasi, mempelajari
+                       flashcard, mengerjakan kuis, melacak progres belajar,
+                       dan mengirimkan materi sendiri untuk ditinjau admin.
+
+  - Admin:            Mengelola konten (CRUD), menyetujui/menolak materi dari
+                       pengguna, mengelola akun pengguna, dan melihat
+                       analitik dashboard.
+
+Tech Stack:
+  - Framework:  Laravel 11
+  - Frontend:   Blade + Alpine.js + Tailwind CSS 3
+  - Build:      Vite
+  - Database:   MySQL (development), SQLite (testing)
+  - Auth:       Laravel Breeze (Blade stack)
+  - Testing:    Pest
+
+Akun Demo (Seeder):
+  - Admin:   admin123@gmail.com / admin123
+  - User:    user@example.com  / password
+
+
+================================================================================
+2. KEBUTUHAN SISTEM
+================================================================================
+
+  - PHP >= 8.2
+  - Composer 2.x
+  - Node.js >= 18 + NPM
+  - MySQL / MariaDB
+  - Ekstensi PHP: BCMath, Ctype, Fileinfo, JSON, Mbstring, OpenSSL,
+    PDO, Tokenizer, XML, GD (untuk thumbnail)
+
+
+================================================================================
+3. INSTALASI
+================================================================================
+
+  3.1 Clone Projek
+  ------------------------------------------------------------------------
+      git clone https://github.com/username/ecolearn.git
+      cd ecolearn
+
+  3.2 Install Dependency PHP (Composer)
+  ------------------------------------------------------------------------
+      composer install
+
+  3.3 Copy & Setup Environment
+  ------------------------------------------------------------------------
+      cp .env.example .env
+      php artisan key:generate
+
+      # Edit .env -> sesuaikan DB_DATABASE, DB_USERNAME, DB_PASSWORD
+
+  3.4 Install Dependency Frontend (Node.js)
+  ------------------------------------------------------------------------
+      npm install
+
+  3.5 Build Frontend
+  ------------------------------------------------------------------------
+      npm run build               # Production
+      # atau
+      npm run dev                 # Development (Vite HMR)
+
+  3.6 Migrasi Database
+  ------------------------------------------------------------------------
+      php artisan migrate
+
+  3.7 Seeder (Data Awal)
+  ------------------------------------------------------------------------
+      php artisan db:seed
+
+  3.8 Jalankan Server
+  ------------------------------------------------------------------------
+      # Semua service sekaligus (server + queue + log + Vite):
+      composer dev
+
+      # Atau manual:
+      php artisan serve            # Server Laravel
+      php artisan queue:listen     # Queue (notifikasi)
+      php artisan pail             # Log viewer
+
+
+================================================================================
+4. STRUKTUR DIREKTORI
+================================================================================
+
+  app/
+  ├── Http/
+  │   ├── Controllers/
+  │   │   ├── Admin/
+  │   │   │   ├── ContentController.php    # CRUD konten (admin)
+  │   │   │   └── UserController.php       # CRUD user (admin)
+  │   │   ├── Auth/                        # Breeze: login, register, dll.
+  │   │   ├── DashboardController.php      # Dashboard admin & user
+  │   │   ├── MaterialController.php       # Browse materi & progres
+  │   │   ├── ProfileController.php        # Edit profil user
+  │   │   └── UserContentController.php    # Kelola konten milik user
+  │   ├── Middleware/
+  │   │   ├── AdminMiddleware.php          # Cek is_admin
+  │   │   └── SetLocale.php                # Ganti bahasa (id/en)
+  │   └── Requests/
+  │       ├── Auth/LoginRequest.php        # Validasi + rate limit login
+  │       └── ProfileUpdateRequest.php     # Validasi update profil
+  ├── Models/
+  │   ├── User.php
+  │   ├── Content.php
+  │   ├── Flashcard.php
+  │   ├── Quiz.php
+  │   └── UserProgress.php
+  ├── Notifications/
+  │   ├── ContentSubmittedForReview.php    # Notif submit materi
+  │   └── ContentDeleted.php              # Notif konten dihapus admin
+  └── View/Components/                    # Blade components
+
+  bootstrap/
+  └── app.php                              # Register middleware alias
+
+  config/
+  ├── sdg.php                              # Data 17 SDGs (warna, ikon, dll)
+  └── ...
+
+  database/
+  ├── factories/                           # Factory untuk seeding
+  ├── migrations/                          # Semua migrasi tabel
+  └── seeders/                             # Seeder data awal
+
+  resources/
+  └── views/
+      ├── admin/content/                   # View CRUD konten (admin)
+      ├── admin/user/                      # View CRUD user (admin)
+      ├── auth/                            # View login, register, dll.
+      ├── components/                      # Blade components
+      ├── dashboard/                       # View dashboard
+      ├── layouts/                         # Layout utama
+      ├── materials/                       # View browsing materi
+      ├── partials/                        # Header, sidebar
+      ├── profile/                         # View edit profil
+      ├── user-content/                    # View kelola konten user
+      ├── welcome.blade.php                # Halaman depan
+      └── app.blade.php                    # App layout utama
+
+  routes/
+  ├── web.php                              # Route aplikasi utama
+  ├── auth.php                             # Route Breeze auth
+  └── console.php                          # Artisan command
+
+  tests/
+  ├── Feature/
+  │   ├── Admin/ContentTest.php            # Test CRUD konten admin
+  │   └── ... (auth test bawaan Breeze)
+  └── Pest.php                             # Konfigurasi Pest
+
+
+================================================================================
+5. DATABASE (STRUKTUR TABEL)
+================================================================================
+
+  Tabel: users
+  ----------------------------------------------------------------
+  id                  BIGINT (PK, AUTO_INCREMENT)
+  name                VARCHAR(255)
+  email               VARCHAR(255) (UNIQUE)
+  email_verified_at   TIMESTAMP (nullable)
+  password            VARCHAR(255)
+  is_admin            BOOLEAN (default false)
+  remember_token      VARCHAR(100) (nullable)
+  created_at          TIMESTAMP
+  updated_at          TIMESTAMP
+
+  Tabel: contents
+  ----------------------------------------------------------------
+  id                  BIGINT (PK)
+  user_id             BIGINT (FK -> users.id, CASCADE DELETE)
+  title               VARCHAR(255)
+  slug                VARCHAR(255) (UNIQUE)
+  description         TEXT (nullable)
+  body                LONGTEXT (nullable)
+  sdg_category        VARCHAR(255) (nullable)
+  tags                VARCHAR(255) (nullable)
+  status              VARCHAR(255) (default 'draft')
+                            # draft, pending_review, published, rejected
+  difficulty          VARCHAR(255) (nullable) # basic, core, expert
+  thumbnail           VARCHAR(255) (nullable)
+  ai_summary          BOOLEAN (default false)
+  public_access       BOOLEAN (default false)
+  published_at        TIMESTAMP (nullable)
+  rejection_reason    TEXT (nullable)
+  submitted_at        TIMESTAMP (nullable)
+  created_at          TIMESTAMP
+  updated_at          TIMESTAMP
+
+  Tabel: flashcards
+  ----------------------------------------------------------------
+  id                  BIGINT (PK)
+  content_id          BIGINT (FK -> contents.id, CASCADE DELETE)
+  question            TEXT
+  answer              TEXT
+  order               UNSIGNED SMALLINT (nullable)
+  created_at          TIMESTAMP
+  updated_at          TIMESTAMP
+
+  Tabel: quizzes
+  ----------------------------------------------------------------
+  id                  BIGINT (PK)
+  content_id          BIGINT (FK -> contents.id, CASCADE DELETE)
+  question            TEXT
+  options             JSON (array 4 pilihan)
+  correct_answer      VARCHAR(255)
+  order               UNSIGNED SMALLINT (nullable)
+  created_at          TIMESTAMP
+  updated_at          TIMESTAMP
+
+  Tabel: user_progress
+  ----------------------------------------------------------------
+  id                  BIGINT (PK)
+  user_id             BIGINT (FK -> users.id, CASCADE DELETE)
+  content_id          BIGINT (FK -> contents.id, CASCADE DELETE)
+  type                VARCHAR(255)  # 'flashcard' atau 'quiz'
+  item_id             BIGINT
+  status              VARCHAR(255) (default 'pending')
+                            # 'mastered', 'reviewing', 'passed', 'failed'
+  score               INTEGER (nullable)
+  attempts            INTEGER (default 1)
+  created_at          TIMESTAMP
+  updated_at          TIMESTAMP
+
+  UNIQUE(user_id, type, item_id)
+  # Satu user cuma punya 1 progres per flashcard/quiz
+
+  Tabel: notifications
+  ----------------------------------------------------------------
+  id                  CHAR(36) (PK, UUID)
+  type                VARCHAR(255)
+  notifiable_type     VARCHAR(255)
+  notifiable_id       BIGINT
+  data                TEXT
+  read_at             TIMESTAMP (nullable)
+  created_at          TIMESTAMP
+  updated_at          TIMESTAMP
+
+  Tabel: sessions, cache, cache_locks, jobs, job_batches, failed_jobs
+  ----------------------------------------------------------------
+  (Tabel bawaan Laravel untuk session database, cache, queue)
+
+
+================================================================================
+6. FITUR & ARSITEKTUR MVC
+================================================================================
+
+
+  ------------------------------------------------------------------
+  6.1  FITUR: Autentikasi (Login/Register/Logout)
+  ------------------------------------------------------------------
+  Tujuan:       Login, register, dan logout pengguna.
+
+  Route:
+    GET/POST  /login      -> Auth\AuthenticatedSessionController
+    GET/POST  /register   -> Auth\RegisteredUserController
+    POST      /logout     -> Auth\AuthenticatedSessionController
+
+  Controller:
+    app/Http/Controllers/Auth/AuthenticatedSessionController.php
+      -> create()        : Menampilkan form login
+      -> store(request)  : Proses login (validasi via LoginRequest)
+      -> destroy(request): Logout
+
+    app/Http/Controllers/Auth/RegisteredUserController.php
+      -> create()        : Menampilkan form register
+      -> store(request)  : Proses register, auto login setelahnya
+
+  Request/Validasi:
+    app/Http/Requests/Auth/LoginRequest.php
+      -> authenticate()  : Login dengan rate limiter (max 5x)
+      -> rules()         : Validasi email & password
+
+  Model:
+    app/Models/User.php
+      - is_admin (boolean cast)
+      - Relasi: tidak ada relasi explicit di model User,
+        tapi dipakai oleh Content (user_id), UserProgress (user_id)
+
+  View:
+    resources/views/auth/login.blade.php
+    resources/views/auth/register.blade.php
+
+    Layout: resources/views/layouts/auth.blade.php
+    (Menggunakan @yield('content'))
+
+  Middleware:
+    - guest (untuk akses form login/register)
+    - auth (untuk logout)
+
+  Alur Singkat:
+    User buka /login -> AuthenticatedSessionController@create
+    -> render auth.login -> user submit form
+    -> AuthenticatedSessionController@store
+    -> validasi lewat LoginRequest -> cek password
+    -> regenerate session -> redirect ke /dashboard
+
+
+  ------------------------------------------------------------------
+  6.2  FITUR: Lupa Password & Reset Password
+  ------------------------------------------------------------------
+  Tujuan:       Mengirim email tautan reset password & mengganti password.
+
+  Route:
+    GET/POST  /forgot-password      -> PasswordResetLinkController
+    GET       /reset-password/{token} -> NewPasswordController@create
+    POST      /reset-password       -> NewPasswordController@store
+
+  Controller:
+    app/Http/Controllers/Auth/PasswordResetLinkController.php
+      -> create() : Form email
+      -> store()  : Kirim reset link
+
+    app/Http/Controllers/Auth/NewPasswordController.php
+      -> create() : Form reset password (dengan token)
+      -> store()  : Proses reset password
+
+  Model:          - (tidak perlu model, pakai Password Broker bawaan)
+  Tabel:          password_reset_tokens
+
+  View:
+    resources/views/auth/forgot-password.blade.php
+    resources/views/auth/reset-password.blade.php
+
+    Layout: resources/views/layouts/auth.blade.php
+
+
+  ------------------------------------------------------------------
+  6.3  FITUR: Verifikasi Email
+  ------------------------------------------------------------------
+  Tujuan:       Verifikasi alamat email setelah register.
+
+  Route:
+    GET   /verify-email              -> EmailVerificationPromptController
+    GET   /verify-email/{id}/{hash}  -> VerifyEmailController
+    POST  /email/verification-notification -> EmailVerificationNotificationController
+
+  Controller:
+    app/Http/Controllers/Auth/EmailVerificationPromptController.php
+      -> __invoke() : Tampilkan halaman "verifikasi email"
+
+    app/Http/Controllers/Auth/VerifyEmailController.php
+      -> __invoke() : Tandai email sebagai verified
+
+    app/Http/Controllers/Auth/EmailVerificationNotificationController.php
+      -> store() : Kirim ulang email verifikasi
+
+  Model:    User (email_verified_at diupdate)
+  View:
+    resources/views/auth/verify-email.blade.php
+    Layout: resources/views/layouts/guest.blade.php (menggunakan {{ $slot }})
+
+  Middleware:
+    - auth, signed (untuk link verifikasi)
+    - throttle:6,1
+
+
+  ------------------------------------------------------------------
+  6.4  FITUR: Konfirmasi Password
+  ------------------------------------------------------------------
+  Tujuan:       Konfirmasi password sebelum aksi sensitif (hapus akun).
+
+  Route:
+    GET/POST /confirm-password -> ConfirmablePasswordController
+
+  Controller:
+    app/Http/Controllers/Auth/ConfirmablePasswordController.php
+      -> show() : Tampilkan form konfirmasi
+      -> store(): Validasi password, set session timestamp
+
+  View:
+    resources/views/auth/confirm-password.blade.php
+    Layout: resources/views/layouts/guest.blade.php
+
+
+  ------------------------------------------------------------------
+  6.5  FITUR: Ganti Password (dari halaman profil)
+  ------------------------------------------------------------------
+  Tujuan:       Mengganti password user yang sudah login.
+
+  Route:
+    PUT /password -> Auth\PasswordController@update
+
+  Controller:
+    app/Http/Controllers/Auth/PasswordController.php
+      -> update() : Validasi password lama & baru, update
+
+  View:
+    resources/views/profile/partials/update-password-form.blade.php
+
+
+  ------------------------------------------------------------------
+  6.6  FITUR: Dashboard (Halaman Utama Setelah Login)
+  ------------------------------------------------------------------
+  Tujuan:       Menampilkan dashboard berbeda untuk admin & user biasa.
+
+  Route:
+    GET /dashboard -> DashboardController@index
+    (middleware: auth, verified)
+
+  Controller:
+    app/Http/Controllers/DashboardController.php
+      -> index()        : Memeriksa is_admin, panggil adminDashboard()
+                           atau userDashboard()
+      -> adminDashboard(): Tampilkan statistik:
+           - Total users, contents, flashcards, quizzes
+           - Active users (login dalam 7 hari)
+           - Published this month
+           - Grafik pertumbuhan user (6 bulan)
+           - Grafik distribusi SDG
+           - 5 user & konten terbaru
+      -> userDashboard() : Tampilkan progres user:
+           - Materials studied, flashcards mastered
+           - Total attempts, quiz points earned, avg score
+           - Grafik progres 30 hari
+           - Progres per materi (flashcards & quiz score)
+           - 10 progres terbaru
+
+  Model:
+    - User
+    - Content
+    - Flashcard
+    - Quiz
+    - UserProgress
+
+  View:
+    resources/views/dashboard/index.blade.php   (layout admin)
+    resources/views/dashboard/user.blade.php     (layout user)
+    resources/views/dashboard/guest/index.blade.php (halaman demo)
+
+    Layout: resources/views/layouts/app.blade.php
+
+
+  ------------------------------------------------------------------
+  6.7  FITUR: Browse Materi (Halaman Publik)
+  ------------------------------------------------------------------
+  Tujuan:       Menampilkan daftar materi yang sudah dipublikasikan,
+                dengan fitur pencarian & filter.
+
+  Route:
+    GET /materials -> MaterialController@index   (publik, tanpa login)
+
+  Controller:
+    app/Http/Controllers/MaterialController.php
+      -> index(request): Menampilkan daftar materi published
+           - Search (FULLTEXT index di MySQL / LIKE fallback)
+           - Filter sdg_category & difficulty
+           - Paginate 12 per halaman
+      -> show(content)  : Detail materi + flashcard + quiz
+           - Guest hanya lihat preview (600 char)
+           - User login bisa akses penuh & progresnya
+
+  Model:
+    - Content (dengan relasi flashcards, quizzes)
+
+  View:
+    resources/views/materials/index.blade.php
+    resources/views/materials/show.blade.php
+
+    Layout: resources/views/layouts/browse.blade.php
+
+
+  ------------------------------------------------------------------
+  6.8  FITUR: Belajar Flashcard
+  ------------------------------------------------------------------
+  Tujuan:       Pengguna mempelajari flashcard dalam suatu materi.
+
+  Route:
+    POST /progress -> MaterialController@saveProgress
+    (middleware: auth)
+
+  Controller:
+    app/Http/Controllers/MaterialController.php
+      -> saveProgress(request): AJAX endpoint
+           - Menyimpan/memperbarui progres flashcard
+           - Payload: content_id, type='flashcard', item_id, status
+           - Status: 'mastered' (tahu) / 'reviewing' (masih belajar)
+
+  Model:
+    - UserProgress (user_id, content_id, type, item_id, status, attempts)
+    - Content
+
+  View:
+    (dihandle via JavaScript di materials/show.blade.php)
+
+  Alur Singkat:
+    User buka /materials/{slug} -> lihat flashcard
+    -> klik "Tahu" / "Masih Belajar"
+    -> JS kirim POST /progress dengan data flashcard
+    -> MaterialController@saveProgress
+    -> UserProgress::updateOrCreate
+    -> respons JSON sukses
+
+
+  ------------------------------------------------------------------
+  6.9  FITUR: Mengerjakan Kuis
+  ------------------------------------------------------------------
+  Tujuan:       Pengguna menjawab soal kuis dalam suatu materi.
+
+  Route:
+    POST /progress/quiz/batch -> MaterialController@saveQuizBatch
+    (middleware: auth)
+
+  Controller:
+    app/Http/Controllers/MaterialController.php
+      -> saveQuizBatch(request): AJAX endpoint
+           - Menerima array jawaban kuis dalam satu request
+           - Menghitung benar/salah per soal
+           - Menyimpan status 'passed'/'failed' per item
+           - Mengembalikan JSON per-item (question_id, correct, status)
+
+  Model:
+    - UserProgress, Quiz
+
+  View:
+    (dihandle via JavaScript di materials/show.blade.php)
+
+
+  ------------------------------------------------------------------
+  6.10 FITUR: Edit Profil (Update Informasi & Hapus Akun)
+  ------------------------------------------------------------------
+  Tujuan:       User mengganti nama, email, atau menghapus akun.
+
+  Route:
+    GET/PATCH /profile   -> ProfileController
+    DELETE    /profile   -> ProfileController@destroy
+
+  Controller:
+    app/Http/Controllers/ProfileController.php
+      -> edit()     : Tampilkan form edit profil
+      -> update()   : Update name & email (reset verified_at jika email berubah)
+      -> destroy()  : Hapus akun (butuh konfirmasi password)
+
+  Request:
+    app/Http/Requests/ProfileUpdateRequest.php
+      - Validasi name & email (unique kecuali dirinya sendiri)
+
+  Model:    User
+  View:
+    resources/views/profile/edit.blade.php
+    resources/views/profile/partials/update-profile-information-form.blade.php
+    resources/views/profile/partials/update-password-form.blade.php
+    resources/views/profile/partials/delete-user-form.blade.php
+
+    Layout: resources/views/layouts/app.blade.php
+
+
+  ------------------------------------------------------------------
+  6.11 FITUR: Kelola Konten Saya (User Content)
+  ------------------------------------------------------------------
+  Tujuan:       User (bukan admin) membuat, mengedit, dan mengirimkan
+                konten edukasi untuk ditinjau admin.
+
+  Route:
+    GET     /my-content          -> UserContentController@index
+    GET     /my-content/create   -> UserContentController@create
+    POST    /my-content          -> UserContentController@store
+    GET     /my-content/{id}/edit -> UserContentController@edit
+    PUT     /my-content/{id}     -> UserContentController@update
+    POST    /my-content/{id}/submit -> UserContentController@submit
+    (middleware: auth)
+
+  Controller:
+    app/Http/Controllers/UserContentController.php
+      -> index()   : Daftar konten milik user (paginate 15)
+      -> create()  : Form buat konten baru
+      -> store()   : Simpan konten + flashcard + quiz (status draft)
+                       - Thumbnail upload opsional
+                       - Slug otomatis dari title
+                       - Sanitasi body HTML
+      -> edit()    : Form edit (403 jika bukan pemilik atau sudah published)
+      -> update()  : Update konten, hapus & buat ulang flashcard/quiz
+      -> submit()  : Ubah status jadi 'pending_review'
+                       - Kirim notifikasi ke admin via ContentSubmittedForReview
+
+  Model:
+    - Content (dengan relasi user, flashcards, quizzes)
+    - Flashcard
+    - Quiz
+    - User
+
+  View:
+    resources/views/user-content/index.blade.php
+    resources/views/user-content/create.blade.php
+    resources/views/user-content/edit.blade.php
+
+    Layout: resources/views/layouts/app.blade.php
+
+  Notifikasi:
+    app/Notifications/ContentSubmittedForReview.php
+      - Tipe: content_submitted
+      - Data: content_id, content_title, author_name
+      - Pesan bilingual (id/en)
+      - Dikirim ke SEMUA admin via database channel
+
+
+  ------------------------------------------------------------------
+  6.12 FITUR: Admin - CRUD Konten (Content Management)
+  ------------------------------------------------------------------
+  Tujuan:       Admin membuat, melihat, mengedit, dan menghapus konten.
+                Bisa juga menyetujui atau menolak kiriman user.
+
+  Route:
+    GET     /admin/content              -> Admin\ContentController@index
+    GET     /admin/content/create       -> Admin\ContentController@create
+    POST    /admin/content              -> Admin\ContentController@store
+    GET     /admin/content/{content}    -> Admin\ContentController@show
+    GET     /admin/content/{content}/edit -> Admin\ContentController@edit
+    PUT     /admin/content/{content}    -> Admin\ContentController@update
+    DELETE  /admin/content/{content}    -> Admin\ContentController@destroy
+    POST    /admin/content/{content}/approve -> Admin\ContentController@approve
+    POST    /admin/content/{content}/reject  -> Admin\ContentController@reject
+    (middleware: auth, admin)
+
+  Controller:
+    app/Http/Controllers/Admin/ContentController.php
+      -> index()    : Daftar SEMUA konten (search, filter status/difficulty/sdg,
+                       sort, paginate 15)
+      -> create()   : Form buat konten (admin)
+      -> store()    : Simpan konten + flashcard + quiz
+      -> show()     : Detail konten + statistik engagement:
+           - Total viewers, flashcard learners, quiz takers
+           - Rata-rata skor kuis, mastery rate
+           - Data chart JSON
+      -> edit()     : Form edit konten
+      -> update()   : Update konten, hapus & buat ulang flashcard/quiz
+      -> destroy()  : Hapus konten + thumbnail
+                       - Notifikasi ke author jika konten sudah publish
+                       - Reset AUTO_INCREMENT jika tabel kosong
+      -> approve()  : Ubah status jadi 'published', set published_at
+      -> reject()   : Ubah status jadi 'rejected' + rejection_reason
+
+  Model:
+    - Content (dengan relasi user, flashcards, quizzes, userProgress)
+    - Flashcard
+    - Quiz
+    - UserProgress
+    - User
+
+  View:
+    resources/views/admin/content/index.blade.php
+    resources/views/admin/content/create.blade.php
+    resources/views/admin/content/edit.blade.php
+    resources/views/admin/content/show.blade.php
+
+    Layout: resources/views/layouts/app.blade.php (via @yield('content'))
+
+  Notifikasi:
+    app/Notifications/ContentDeleted.php
+      - Dikirim ke author jika admin hapus konten yang sudah publish
+
+
+  ------------------------------------------------------------------
+  6.13 FITUR: Admin - Kelola User
+  ------------------------------------------------------------------
+  Tujuan:       Admin melihat, membuat, mengedit, dan menghapus user.
+
+  Route:
+    GET     /admin/user             -> Admin\UserController@index
+    GET     /admin/user/create      -> Admin\UserController@create
+    POST    /admin/user             -> Admin\UserController@store
+    GET     /admin/user/{user}      -> Admin\UserController@show
+    GET     /admin/user/{user}/edit -> Admin\UserController@edit
+    PUT     /admin/user/{user}      -> Admin\UserController@update
+    DELETE  /admin/user/{user}      -> Admin\UserController@destroy
+    (middleware: auth, admin)
+
+  Controller:
+    app/Http/Controllers/Admin\UserController.php
+      -> index()   : Daftar user (search name/email, filter is_admin, paginate 12)
+      -> create()  : Form buat user (dengan is_admin checkbox)
+      -> store()   : Simpan user baru
+      -> show()    : Lihat detail user (sama seperti edit)
+      -> edit()    : Form edit user (name, email, is_admin, password opsional)
+      -> update()  : Update user
+      -> destroy() : Hapus user (cegah self-deletion)
+
+  Model:    User
+  View:
+    resources/views/admin/user/index.blade.php
+    resources/views/admin/user/create.blade.php
+    resources/views/admin/user/edit.blade.php
+
+    Layout: resources/views/layouts/app.blade.php
+
+
+  ------------------------------------------------------------------
+  6.14 FITUR: Dashboard Guest / Landing (Tanpa Login)
+  ------------------------------------------------------------------
+  Tujuan:       Halaman depan untuk pengunjung yang belum login.
+
+  Route:
+    GET  /  -> welcome.blade.php (halaman landing)
+    GET  /demo/explore -> return view dashboard.guest.index
+
+  View:
+    resources/views/welcome.blade.php
+      - Halaman landing dengan hero, fitur, dll.
+      - Ada Alpine.js mobile menu (x-data="mobileMenuOpen")
+
+    resources/views/dashboard/guest/index.blade.php
+      - Tampilkan 3 materi published sebagai preview
+
+  Layout:
+    - welcome.blade.php tidak pakai layout khusus (standalone)
+    - guest/index.blade.php pakai layouts/app.blade.php
+
+
+  ------------------------------------------------------------------
+  6.15 FITUR: Notifikasi (In-App)
+  ------------------------------------------------------------------
+  Tujuan:       Menampilkan notifikasi di dalam aplikasi (database).
+
+  Route:
+    POST /notifications/{id}/read      -> Tandai 1 notif dibaca
+    POST /notifications/read-all        -> Tandai semua notif dibaca
+    (middleware: auth)
+
+  Implementasi:
+    (Closure di routes/web.php)
+    - Notifikasi dari ContentSubmittedForReview dan ContentDeleted
+    - Tersimpan di tabel notifications (tipe: database channel)
+    - Ada badge di sidebar untuk notif belum dibaca
+
+  View:
+    - Ditampilkan di sidebar (resources/views/partials/sidebar.blade.php)
+    - Bisa juga di header
+
+  Model:    - (tidak perlu model custom, bawaan Notifiable trait)
+
+
+  ------------------------------------------------------------------
+  6.16 FITUR: Ganti Bahasa (Localization)
+  ------------------------------------------------------------------
+  Tujuan:       Beralih antara Bahasa Indonesia dan Bahasa Inggris.
+
+  Route:
+    GET /lang/{locale} -> Set locale session
+
+  Controller:
+    (Closure di routes/web.php)
+    - Menerima 'id' atau 'en'
+    - Simpan ke session('locale')
+
+  Middleware:
+    app/Http/Middleware/SetLocale.php
+      - Append ke grup web di bootstrap/app.php
+      - Baca session('locale'), set App::setLocale($locale)
+
+  Config:
+    - File bahasa di resources/lang/ (jika ada)
+    - Atau langsung di view dengan __() / @lang
+
+
+  ------------------------------------------------------------------
+  6.17 FITUR: Middleware Admin
+  ------------------------------------------------------------------
+  Tujuan:       Melindungi route agar hanya bisa diakses admin.
+
+  File:
+    bootstrap/app.php
+      -> $middleware->alias(['admin' => AdminMiddleware::class]);
+
+    app/Http/Middleware/AdminMiddleware.php
+      -> handle(): Cek $request->user()?->is_admin
+      -> Abort 403 jika bukan admin
+
+  Penggunaan:
+    Route::middleware(['auth', 'admin'])->group(...)
+
+
+================================================================================
+7. DAFTAR ROUTE LENGKAP
+================================================================================
+
+  METHOD  URI                                       CONTROLLER / ACTION              MIDDLEWARE           NAMA ROUTE
+  ------  ----------------------------------------  -------------------------------  -------------------  ---------------------------
+  GET     /                                         welcome.blade.php                web                  (none)
+  GET     /demo/explore                             dashboard.guest.index            web                  demo
+  GET     /lang/{locale}                            Closure                          web                  lang.switch
+  GET     /dashboard                                DashboardController@index        auth, verified       dashboard
+  GET     /materials                                MaterialController@index         web                  materials.index
+  GET     /materials/{content:slug}                 MaterialController@show          web                  materials.show
+  GET     /profile                                  ProfileController@edit           auth                 profile.edit
+  PATCH   /profile                                  ProfileController@update         auth                 profile.update
+  DELETE  /profile                                  ProfileController@destroy        auth                 profile.destroy
+  POST    /progress                                 MaterialController@saveProgress  auth                 progress.save
+  POST    /progress/quiz/batch                      MaterialController@saveQuizBatch auth                 progress.quiz.batch
+  POST    /notifications/{id}/read                  Closure                          auth                 notifications.read
+  POST    /notifications/read-all                   Closure                          auth                 notifications.read-all
+  GET     /my-content                               UserContentController@index      auth                 user.content.index
+  GET     /my-content/create                        UserContentController@create     auth                 user.content.create
+  POST    /my-content                               UserContentController@store      auth                 user.content.store
+  GET     /my-content/{content}/edit                UserContentController@edit       auth                 user.content.edit
+  PUT     /my-content/{content}                     UserContentController@update     auth                 user.content.update
+  POST    /my-content/{content}/submit              UserContentController@submit     auth                 user.content.submit
+  GET     /admin/content                            Admin\ContentController@index    auth, admin           admin.content.index
+  GET     /admin/content/create                     Admin\ContentController@create   auth, admin           admin.content.create
+  POST    /admin/content                            Admin\ContentController@store    auth, admin           admin.content.store
+  GET     /admin/content/{content}                  Admin\ContentController@show     auth, admin           admin.content.show
+  GET     /admin/content/{content}/edit             Admin\ContentController@edit     auth, admin           admin.content.edit
+  PUT     /admin/content/{content}                  Admin\ContentController@update   auth, admin           admin.content.update
+  DELETE  /admin/content/{content}                  Admin\ContentController@destroy  auth, admin           admin.content.destroy
+  POST    /admin/content/{content}/approve          Admin\ContentController@approve  auth, admin           admin.content.approve
+  POST    /admin/content/{content}/reject           Admin\ContentController@reject   auth, admin           admin.content.reject
+  GET     /admin/user                               Admin\UserController@index       auth, admin           admin.user.index
+  GET     /admin/user/create                        Admin\UserController@create      auth, admin           admin.user.create
+  POST    /admin/user                               Admin\UserController@store       auth, admin           admin.user.store
+  GET     /admin/user/{user}                        Admin\UserController@show        auth, admin           admin.user.show
+  GET     /admin/user/{user}/edit                   Admin\UserController@edit        auth, admin           admin.user.edit
+  PUT     /admin/user/{user}                        Admin\UserController@update      auth, admin           admin.user.update
+  DELETE  /admin/user/{user}                        Admin\UserController@destroy     auth, admin           admin.user.destroy
+
+  --- Route Auth Breeze (routes/auth.php) ---
+
+  GET     /register                                RegisteredUserController@create   guest                register
+  POST    /register                                RegisteredUserController@store    guest                (none)
+  GET     /login                                   AuthenticatedSessionController@create guest             login
+  POST    /login                                   AuthenticatedSessionController@store  guest             (none)
+  GET     /forgot-password                         PasswordResetLinkController@create    guest             password.request
+  POST    /forgot-password                         PasswordResetLinkController@store     guest             password.email
+  GET     /reset-password/{token}                  NewPasswordController@create          guest             password.reset
+  POST    /reset-password                          NewPasswordController@store           guest             password.store
+  GET     /verify-email                            EmailVerificationPromptController     auth              verification.notice
+  GET     /verify-email/{id}/{hash}                VerifyEmailController                 auth, signed,     verification.verify
+                                                                                         throttle:6,1
+  POST    /email/verification-notification          EmailVerificationNotificationController@store  auth, throttle:6,1  verification.send
+  GET     /confirm-password                        ConfirmablePasswordController@show    auth              password.confirm
+  POST    /confirm-password                        ConfirmablePasswordController@store   auth              (none)
+  PUT     /password                                PasswordController@update             auth              password.update
+  POST    /logout                                  AuthenticatedSessionController@destroy auth             logout
+
+
+================================================================================
+              AKHIR DOKUMENTASI
+================================================================================

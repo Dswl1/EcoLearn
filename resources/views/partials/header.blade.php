@@ -104,9 +104,13 @@
 
             <div x-show="open" x-cloak @click.outside="open = false"
                 class="absolute right-0 top-full mt-2 w-52 bg-surface/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl z-50 p-2">
-                <a href="{{ route('profile.edit') }}"
+                <a href="{{ route('profile.show') }}"
                     class="block px-4 py-3 rounded-lg text-sm text-on-surface-variant hover:bg-white/10 transition">
                     {{ __('app.profile') }}
+                </a>
+                <a href="{{ route('profile.edit') }}"
+                    class="block px-4 py-3 rounded-lg text-sm text-on-surface-variant hover:bg-white/10 transition">
+                    {{ __('app.profile_information') }}
                 </a>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf

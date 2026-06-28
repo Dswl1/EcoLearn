@@ -12,13 +12,27 @@
     @endphp
 
     <nav class="flex-1 py-6 overflow-y-auto font-label-sm text-label-sm flex flex-col gap-1 px-3">
-                <a href="{{ route('dashboard') }}"
-                    class="flex items-center gap-3 p-4 transition-all duration-300 rounded-lg
+
+        @if (Route::has('login'))
+            @auth
+            <a href="{{ route('dashboard') }}"
+                class="flex items-center gap-3 p-4 transition-all duration-300 rounded-lg
+        {{ request()->routeIs('dashboard') ? 'bg-primary-container/10 text-primary-container border-r-4 border-primary-container neon-shadow' : 'text-on-surface-variant hover:bg-white/5' }}">
+                <span class="material-symbols-outlined"
+                    style="font-variation-settings: 'FILL' {{ request()->routeIs('dashboard') ? 1 : 0 }};">dashboard</span>
+                {{ __('app.dashboard') }}
+            </a>
+            @else
+            <a href="{{ route('demo') }}"
+            class="flex items-center gap-3 p-4 transition-all duration-300 rounded-lg
             {{ request()->routeIs('dashboard') ? 'bg-primary-container/10 text-primary-container border-r-4 border-primary-container neon-shadow' : 'text-on-surface-variant hover:bg-white/5' }}">
-                    <span class="material-symbols-outlined"
-                        style="font-variation-settings: 'FILL' {{ request()->routeIs('dashboard') ? 1 : 0 }};">dashboard</span>
-                    {{ __('app.dashboard') }}
-                </a>
+            <span class="material-symbols-outlined"
+            style="font-variation-settings: 'FILL' {{ request()->routeIs('dashboard') ? 1 : 0 }};">dashboard</span>
+            {{ __('app.dashboard') }}
+        </a>
+        @endauth
+            
+        @endif
 
         <div x-data="{ materialsOpen: {{ request()->routeIs('materials*') || request()->routeIs('admin.content*') ? 'true' : 'false' }} }" class="flex flex-col">
             <button @click="materialsOpen = !materialsOpen"
@@ -61,6 +75,14 @@
                 @endif
             </div>
         </div>
+
+        <a href="{{ route('profile.show') }}"
+            class="flex items-center gap-3 p-4 transition-all duration-300 rounded-lg
+                    {{ request()->routeIs('profile.*') ? 'bg-primary-container/10 text-primary-container border-r-4 border-primary-container neon-shadow' : 'text-on-surface-variant hover:bg-white/5' }}">
+            <span class="material-symbols-outlined"
+                style="font-variation-settings: 'FILL' {{ request()->routeIs('profile.*') ? 1 : 0 }};">person</span>
+            {{ __('app.profile') }}
+        </a>
 
         @if ($isAdmin)
             <a href="{{ route('admin.user.index') }}"
